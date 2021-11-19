@@ -26,7 +26,7 @@ class TransformerEngine(MinimalEngine):
         experiment_name: str = "test8",
         checkpoint_id: str = "best",
         exp_dir: Optional[str] = None,
-        target_elo: int = 1500,
+        target_elo: int = 2200,
     ):
         super(TransformerEngine, self).__init__(name="botez_gambot")
         self.target_elo = target_elo
