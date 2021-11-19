@@ -3,10 +3,7 @@ Some example strategies for people who want to create a custom, homemade bot.
 And some handy classes to extend
 """
 
-import chess
-from chess.engine import PlayResult
-import random
-from engine_wrapper import EngineWrapper
+from strategies.engine_wrapper import EngineWrapper
 
 
 class FillerEngine:
@@ -83,31 +80,3 @@ class MinimalEngine(EngineWrapper):
         self.notify(<method_name>, <*args>, <**kwargs>)
         """
         pass
-
-
-class ExampleEngine(MinimalEngine):
-    pass
-
-
-# Strategy names and ideas from tom7's excellent eloWorld video
-
-
-class RandomMove(ExampleEngine):
-    def search(self, board, *args):
-        return PlayResult(random.choice(list(board.legal_moves)), None)
-
-
-class Alphabetical(ExampleEngine):
-    def search(self, board, *args):
-        moves = list(board.legal_moves)
-        moves.sort(key=board.san)
-        return PlayResult(moves[0], None)
-
-
-class FirstMove(ExampleEngine):
-    """Gets the first move when sorted by uci representation"""
-
-    def search(self, board, *args):
-        moves = list(board.legal_moves)
-        moves.sort(key=str)
-        return PlayResult(moves[0], None)

@@ -2,7 +2,7 @@ import argparse
 import chess
 from chess.variant import find_variant
 import chess.polyglot
-import engine_wrapper
+from strategies import engine_wrapper
 import model
 import json
 import lichess

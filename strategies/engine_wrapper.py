@@ -55,7 +55,7 @@ class GameEnding:
 
 
 class EngineWrapper:
-    def __init__(self, commands, options, stderr):
+    def __init__(self, *args):
         pass
 
     def search_for(self, board, movetime, ponder, draw_offered):
