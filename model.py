@@ -1,6 +1,7 @@
 import time
 from urllib.parse import urljoin
 
+
 class Challenge:
     def __init__(self, c_info):
         self.id = c_info["id"]
@@ -21,10 +22,21 @@ class Challenge:
     def is_supported_variant(self, supported):
         return self.variant in supported
 
-    def is_supported_time_control(self, supported_speed, supported_increment_max, supported_increment_min, supported_base_max, supported_base_min):
+    def is_supported_time_control(
+        self,
+        supported_speed,
+        supported_increment_max,
+        supported_increment_min,
+        supported_base_max,
+        supported_base_min,
+    ):
         if self.increment < 0:
             return self.speed in supported_speed
-        return self.speed in supported_speed and supported_increment_max >= self.increment >= supported_increment_min and supported_base_max >= self.base >= supported_base_min
+        return (
+            self.speed in supported_speed
+            and supported_increment_max >= self.increment >= supported_increment_min
+            and supported_base_max >= self.base >= supported_base_min
+        )
 
     def is_supported_mode(self, supported):
         return "rated" in supported if self.rated else "casual" in supported
@@ -41,7 +53,11 @@ class Challenge:
         base_max = config.get("max_base", 315360000)
         base_min = config.get("min_base", 0)
         modes = config["modes"]
-        return self.is_supported_time_control(tc, inc_max, inc_min, base_max, base_min) and self.is_supported_variant(variants) and self.is_supported_mode(modes)
+        return (
+            self.is_supported_time_control(tc, inc_max, inc_min, base_max, base_min)
+            and self.is_supported_variant(variants)
+            and self.is_supported_mode(modes)
+        )
 
     def score(self):
         rated_bonus = 200 if self.rated else 0
@@ -52,10 +68,18 @@ class Challenge:
         return "rated" if self.rated else "casual"
 
     def challenger_full_name(self):
-        return "{}{}".format(self.challenger_title + " " if self.challenger_title else "", self.challenger_name)
+        return "{}{}".format(
+            self.challenger_title + " " if self.challenger_title else "",
+            self.challenger_name,
+        )
 
     def __str__(self):
-        return "{} {} challenge from {}({})".format(self.perf_name, self.mode(), self.challenger_full_name(), self.challenger_rating)
+        return "{} {} challenge from {}({})".format(
+            self.perf_name,
+            self.mode(),
+            self.challenger_full_name(),
+            self.challenger_rating,
+        )
 
     def __repr__(self):
         return self.__str__()

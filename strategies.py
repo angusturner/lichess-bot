@@ -16,10 +16,9 @@ class FillerEngine:
     This is only used to provide the property "self.engine"
     in "MinimalEngine" which extends "EngineWrapper"
     """
+
     def __init__(self, main_engine, name=None):
-        self.id = {
-            "name": name
-        }
+        self.id = {"name": name}
         self.name = name
         self.main_engine = main_engine
 
@@ -45,6 +44,7 @@ class MinimalEngine(EngineWrapper):
     however you can also change other methods like
     `notify`, `first_search`, `get_time_control`, etc.
     """
+
     def __init__(self, *args, name=None):
         super().__init__(*args)
 
@@ -52,9 +52,7 @@ class MinimalEngine(EngineWrapper):
 
         self.last_move_info = []
         self.engine = FillerEngine(self, name=self.name)
-        self.engine.id = {
-            "name": self.engine_name
-        }
+        self.engine.id = {"name": self.engine_name}
 
     def search_with_ponder(self, board, wtime, btime, winc, binc, ponder, draw_offered):
         timeleft = 0
@@ -75,7 +73,7 @@ class MinimalEngine(EngineWrapper):
     def notify(self, method_name, *args, **kwargs):
         """
         The EngineWrapper class sometimes calls methods on "self.engine".
-        "self.engine" is a filler property that notifies <self> 
+        "self.engine" is a filler property that notifies <self>
         whenever an attribute is called.
 
         Nothing happens unless the main engine does something.
@@ -93,6 +91,7 @@ class ExampleEngine(MinimalEngine):
 
 # Strategy names and ideas from tom7's excellent eloWorld video
 
+
 class RandomMove(ExampleEngine):
     def search(self, board, *args):
         return PlayResult(random.choice(list(board.legal_moves)), None)
@@ -107,6 +106,7 @@ class Alphabetical(ExampleEngine):
 
 class FirstMove(ExampleEngine):
     """Gets the first move when sorted by uci representation"""
+
     def search(self, board, *args):
         moves = list(board.legal_moves)
         moves.sort(key=str)

@@ -16,20 +16,32 @@ def load_config(config_file):
 
         if "LICHESS_BOT_TOKEN" in os.environ:
             CONFIG["token"] = os.environ["LICHESS_BOT_TOKEN"]
-            
+
         # [section, type, error message]
-        sections = [["token", str, "Section `token` must be a string wrapped in quotes."],
-                    ["url", str, "Section `url` must be a string wrapped in quotes."],
-                    ["engine", dict, "Section `engine` must be a dictionary with indented keys followed by colons.."],
-                    ["challenge", dict, "Section `challenge` must be a dictionary with indented keys followed by colons.."]]
+        sections = [
+            ["token", str, "Section `token` must be a string wrapped in quotes."],
+            ["url", str, "Section `url` must be a string wrapped in quotes."],
+            [
+                "engine",
+                dict,
+                "Section `engine` must be a dictionary with indented keys followed by colons..",
+            ],
+            [
+                "challenge",
+                dict,
+                "Section `challenge` must be a dictionary with indented keys followed by colons..",
+            ],
+        ]
         for section in sections:
             if section[0] not in CONFIG:
                 raise Exception("Your config.yml does not have required section `{}`.".format(section[0]))
             elif not isinstance(CONFIG[section[0]], section[1]):
                 raise Exception(section[2])
 
-        engine_sections = [["dir", str, "´dir´ must be a string wrapped in quotes."],
-                           ["name", str, "´name´ must be a string wrapped in quotes."]]
+        engine_sections = [
+            ["dir", str, "´dir´ must be a string wrapped in quotes."],
+            ["name", str, "´name´ must be a string wrapped in quotes."],
+        ]
         for subsection in engine_sections:
             if subsection[0] not in CONFIG["engine"]:
                 raise Exception("Your config.yml does not have required `engine` subsection `{}`.".format(subsection))

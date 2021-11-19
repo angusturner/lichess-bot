@@ -27,8 +27,7 @@ def create_engine(config):
     elif engine_type == "homemade":
         Engine = getHomemadeEngine(cfg["name"])
     else:
-        raise ValueError(
-            f"    Invalid engine type: {engine_type}. Expected xboard, uci, or homemade.")
+        raise ValueError(f"    Invalid engine type: {engine_type}. Expected xboard, uci, or homemade.")
     options = remove_managed_options(cfg.get(engine_type + "_options", {}) or {})
     return Engine(commands, options, stderr)
 
@@ -41,18 +40,18 @@ def remove_managed_options(config):
 
 
 class Termination:
-    MATE = 'mate'
-    TIMEOUT = 'outoftime'
-    RESIGN = 'resign'
-    ABORT = 'aborted'
-    DRAW = 'draw'
+    MATE = "mate"
+    TIMEOUT = "outoftime"
+    RESIGN = "resign"
+    ABORT = "aborted"
+    DRAW = "draw"
 
 
 class GameEnding:
-    WHITE_WINS = '1-0'
-    BLACK_WINS = '0-1'
-    DRAW = '1/2-1/2'
-    INCOMPLETE = '*'
+    WHITE_WINS = "1-0"
+    BLACK_WINS = "0-1"
+    DRAW = "1/2-1/2"
+    INCOMPLETE = "*"
 
 
 class EngineWrapper:
@@ -71,17 +70,25 @@ class EngineWrapper:
         movetime = cmds.get("movetime")
         if movetime is not None:
             movetime = float(movetime) / 1000
-        time_limit = chess.engine.Limit(white_clock=wtime / 1000,
-                                        black_clock=btime / 1000,
-                                        white_inc=winc / 1000,
-                                        black_inc=binc / 1000,
-                                        depth=cmds.get("depth"),
-                                        nodes=cmds.get("nodes"),
-                                        time=movetime)
+        time_limit = chess.engine.Limit(
+            white_clock=wtime / 1000,
+            black_clock=btime / 1000,
+            white_inc=winc / 1000,
+            black_inc=binc / 1000,
+            depth=cmds.get("depth"),
+            nodes=cmds.get("nodes"),
+            time=movetime,
+        )
         return self.search(board, time_limit, ponder, draw_offered)
 
     def search(self, board, time_limit, ponder, draw_offered):
-        result = self.engine.play(board, time_limit, info=chess.engine.INFO_ALL, ponder=ponder, draw_offered=draw_offered)
+        result = self.engine.play(
+            board,
+            time_limit,
+            info=chess.engine.INFO_ALL,
+            ponder=ponder,
+            draw_offered=draw_offered,
+        )
         self.last_move_info = result.info
         self.print_stats()
         return result
@@ -149,12 +156,12 @@ class XBoardEngine(EngineWrapper):
         # Send final moves, if any, to engine
         self.engine.protocol._new(board, None, {})
 
-        winner = game.state.get('winner')
-        termination = game.state.get('status')
+        winner = game.state.get("winner")
+        termination = game.state.get("status")
 
-        if winner == 'white':
+        if winner == "white":
             game_result = GameEnding.WHITE_WINS
-        elif winner == 'black':
+        elif winner == "black":
             game_result = GameEnding.BLACK_WINS
         elif termination == Termination.DRAW:
             game_result = GameEnding.DRAW
@@ -162,30 +169,30 @@ class XBoardEngine(EngineWrapper):
             game_result = GameEnding.INCOMPLETE
 
         if termination == Termination.MATE:
-            endgame_message = winner.title() + ' mates'
+            endgame_message = winner.title() + " mates"
         elif termination == Termination.TIMEOUT:
-            endgame_message = 'Time forfeiture'
+            endgame_message = "Time forfeiture"
         elif termination == Termination.RESIGN:
-            resigner = 'black' if winner == 'white' else 'white'
-            endgame_message = resigner.title() + ' resigns'
+            resigner = "black" if winner == "white" else "white"
+            endgame_message = resigner.title() + " resigns"
         elif termination == Termination.ABORT:
-            endgame_message = 'Game aborted'
+            endgame_message = "Game aborted"
         elif termination == Termination.DRAW:
             if board.is_fifty_moves():
-                endgame_message = '50-move rule'
+                endgame_message = "50-move rule"
             elif board.is_repetition():
-                endgame_message = 'Threefold repetition'
+                endgame_message = "Threefold repetition"
             else:
-                endgame_message = 'Draw by agreement'
+                endgame_message = "Draw by agreement"
         elif termination:
             endgame_message = termination
         else:
-            endgame_message = ''
+            endgame_message = ""
 
         if endgame_message:
-            endgame_message = ' {' + endgame_message + '}'
+            endgame_message = " {" + endgame_message + "}"
 
-        self.engine.protocol.send_line('result ' + game_result + endgame_message)
+        self.engine.protocol.send_line("result " + game_result + endgame_message)
 
     def stop(self):
         self.engine.protocol.send_line("?")
@@ -202,4 +209,5 @@ class XBoardEngine(EngineWrapper):
 
 def getHomemadeEngine(name):
     import strategies
+
     return eval(f"strategies.{name}")
