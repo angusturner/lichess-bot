@@ -23,12 +23,12 @@ class TransformerEngine(MinimalEngine):
         _commands,
         _options,
         _stderr,
-        experiment_name: str = "test8",
+        experiment_name: str = "bot_large",
         checkpoint_id: str = "best",
         exp_dir: Optional[str] = None,
-        target_elo: int = 2200,
+        target_elo: int = 2500,
     ):
-        super(TransformerEngine, self).__init__(name="botez_gambot")
+        super(TransformerEngine, self).__init__(name="transformer")
         self.target_elo = target_elo
 
         # load the worker
