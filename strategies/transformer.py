@@ -4,7 +4,7 @@ from typing import Any, Optional
 import jax
 import jax.numpy as jnp
 import numpy as np
-from chess import Board
+from chess import Board, Move
 from chess.engine import PlayResult
 
 from neural_chess.utils.data import board_to_flat_repr, get_legal_move_mask, sample_move
@@ -23,10 +23,10 @@ class TransformerEngine(MinimalEngine):
         _commands,
         _options,
         _stderr,
-        experiment_name: str = "bot_large",
-        checkpoint_id: str = "best",
+        experiment_name: str = "bot_large_cls1_res",
+        checkpoint_id: str = "latest",
         exp_dir: Optional[str] = None,
-        target_elo: int = 2500,
+        target_elo: int = 2000,
     ):
         super(TransformerEngine, self).__init__(name="transformer")
         self.target_elo = target_elo
@@ -45,9 +45,9 @@ class TransformerEngine(MinimalEngine):
         self.rng_key = worker.rng_key
 
     @functools.partial(jax.jit, static_argnums=(0,))
-    def _get_move_probs(self, board_state, turn, castling_rights, en_passant, elo, legal_moves, **_kwargs):
+    def _get_move_probs(self, board_state, turn, castling_rights, en_passant, elo, legal_moves, result, **_kwargs):
         logits = self.worker.forward.apply(
-            self.params, self.rng_key, board_state, turn, castling_rights, en_passant, elo, is_training=False
+            self.params, self.rng_key, board_state, turn, castling_rights, en_passant, elo, result, is_training=False
         )
         logits = jnp.where(legal_moves, logits, jnp.full_like(logits, -1e9))
         return jax.nn.softmax(logits, axis=-1)
@@ -73,6 +73,12 @@ class TransformerEngine(MinimalEngine):
         # - 64 indicating no en-passant rights
         en_passant = board.ep_square if board.ep_square else 64
 
+        # what's the game result (set to win lol)
+        if turn:
+            result = -1
+        else:
+            result = 1
+
         # legal moves mask!
         legal_moves = get_legal_move_mask(board).astype(bool)
 
@@ -84,8 +90,34 @@ class TransformerEngine(MinimalEngine):
             "en_passant": np.array([en_passant]).astype(np.int32),
             "castling_rights": np.array([castling_rights]).astype(np.int32),
             "legal_moves": legal_moves.reshape([1, -1]),
+            "result": np.array([result]).astype(np.float32),
         }
 
+        # inject some randomness in the opening strategy
+        nb_moves = board.fullmove_number
+        if nb_moves < 8:
+            greedy = False
+        else:
+            greedy = True
+
+        # top-k sampling, with top-k limited by the number of legal moves
+        top_k = 5
+        nb_legal_moves = np.sum(legal_moves).item()
+        top_k = min(nb_legal_moves, top_k)
         move_probs = np.array(self._get_move_probs(**batch))[0]
-        next_move, _ = sample_move(move_probs, greedy=True)
+        next_move, _ = sample_move(
+            move_probs,
+            greedy=greedy or top_k == 1,
+            # greedy=top_k == 1,
+            topk=top_k,
+            temp=0.8,
+        )
+
+        # bong-cloud opening
+        # if board.turn:
+        #     if board.fullmove_number == 1:
+        #         next_move = Move.from_uci("e2e4")
+        #     elif board.fullmove_number == 2:
+        #         next_move = Move.from_uci("e1e2")
+
         return PlayResult(next_move, None)
